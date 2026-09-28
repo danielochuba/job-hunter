@@ -119,31 +119,54 @@ export function EmptyState({ icon: Icon, title, description, action, className }
   );
 }
 
-/** Editable list of short strings (skills, queries, regions...). */
-export function ChipInput({ value, onChange, placeholder, className }: {
+/** Multi-value input: type and press Enter/comma, or click suggestions to toggle them. */
+export function ChipInput({ value, onChange, placeholder, className, suggestions, maxSuggestions = 12 }: {
   value: string[]; onChange: (v: string[]) => void; placeholder?: string; className?: string;
+  suggestions?: string[]; maxSuggestions?: number;
 }) {
   const [draft, setDraft] = React.useState("");
-  const add = () => {
-    const parts = draft.split(",").map((s) => s.trim()).filter(Boolean).filter((s) => !value.includes(s));
-    if (parts.length) onChange([...value, ...parts]);
-    setDraft("");
+  const has = (s: string) => value.some((v) => v.toLowerCase() === s.toLowerCase());
+  const addMany = (items: string[]) => {
+    const fresh = items.map((s) => s.trim()).filter(Boolean)
+      .filter((s, i, arr) => !has(s) && arr.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i);
+    if (fresh.length) onChange([...value, ...fresh]);
   };
+  const add = () => { addMany(draft.split(",")); setDraft(""); };
+  const toggle = (s: string) => (has(s) ? onChange(value.filter((v) => v.toLowerCase() !== s.toLowerCase())) : addMany([s]));
+
+  const q = draft.trim().toLowerCase();
+  const unique = [...new Map((suggestions ?? []).filter(Boolean).map((s) => [s.toLowerCase(), s])).values()];
+  const shown = unique.filter((s) => !has(s) && (!q || s.toLowerCase().includes(q))).slice(0, maxSuggestions);
+
   return (
-    <div className={cn("flex min-h-9 flex-wrap items-center gap-1 rounded-lg border border-input bg-card px-2 py-1 shadow-xs focus-within:outline-2 focus-within:outline-ring/60", className)}>
-      {value.map((v) => (
-        <span key={v} className="inline-flex items-center gap-1 rounded-md bg-accent px-1.5 py-0.5 text-xs text-accent-foreground">
-          {v}
-          <button type="button" className="cursor-pointer opacity-60 hover:opacity-100" aria-label={`Remove ${v}`}
-            onClick={() => onChange(value.filter((x) => x !== v))}>×</button>
-        </span>
-      ))}
-      <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={value.length ? "" : placeholder}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); }
-          if (e.key === "Backspace" && !draft && value.length) onChange(value.slice(0, -1));
-        }}
-        onBlur={add} className="min-w-24 flex-1 bg-transparent py-0.5 text-sm outline-none placeholder:text-muted-foreground" />
+    <div className="flex flex-col gap-2">
+      <div className={cn("flex min-h-9 flex-wrap items-center gap-1 rounded-lg border border-input bg-card px-2 py-1 shadow-xs focus-within:outline-2 focus-within:outline-ring/60", className)}>
+        {value.map((v) => (
+          <span key={v} className="inline-flex items-center gap-1 rounded-md bg-accent px-1.5 py-0.5 text-xs text-accent-foreground">
+            {v}
+            <button type="button" className="cursor-pointer opacity-60 hover:opacity-100" aria-label={`Remove ${v}`}
+              onClick={() => onChange(value.filter((x) => x !== v))}>×</button>
+          </span>
+        ))}
+        <input value={draft} onChange={(e) => setDraft(e.target.value)}
+          placeholder={value.length ? "Add another…" : placeholder}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); }
+            if (e.key === "Backspace" && !draft && value.length) onChange(value.slice(0, -1));
+          }}
+          onBlur={add} className="min-w-28 flex-1 bg-transparent py-0.5 text-sm outline-none placeholder:text-muted-foreground" />
+      </div>
+      {shown.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] text-muted-foreground">{q ? "Matches:" : "Suggestions:"}</span>
+          {shown.map((s) => (
+            <button key={s} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { toggle(s); setDraft(""); }}
+              className="cursor-pointer rounded-md border border-dashed px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:bg-accent hover:text-accent-foreground">
+              + {s}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

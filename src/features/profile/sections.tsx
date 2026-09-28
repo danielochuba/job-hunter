@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, Switch } from "@/components/ui/overlays";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Field, Input, Textarea } from "@/components/ui/primitives";
 import type { UserProfile } from "@/lib/api/types";
+import { EMPLOYMENT_TYPES, REGIONS, WORK_AUTH, useRoleSuggestions } from "@/lib/suggestions";
 
 export type Update = <K extends keyof UserProfile>(key: K, value: UserProfile[K]) => void;
 type Props = { p: UserProfile; update: Update };
@@ -98,17 +99,19 @@ export function LinksSection({ p, update }: Props) {
 }
 
 export function PreferencesSection({ p, update }: Props) {
+  const roles = useRoleSuggestions();
   return (
     <Section title="What you're looking for" description="Used as search queries and to judge seniority fit.">
-      <Field label="Target roles" className="sm:col-span-2" hint="Also used as aggregator search terms when Settings has none">
-        <ChipInput value={p.target_roles} onChange={(v) => update("target_roles", v)} placeholder="Backend Engineer, Python Developer…" />
+      <Field label="Target roles" className="sm:col-span-2" hint="Pick as many as you like. Also used as search terms when Settings has none">
+        <ChipInput value={p.target_roles} onChange={(v) => update("target_roles", v)} suggestions={roles}
+          placeholder="Type a role and press Enter, or pick below" />
       </Field>
       <Field label="Seniority">
         <Select value={p.seniority ?? undefined} placeholder="Any" onValueChange={(v) => update("seniority", v)}
           options={["Junior", "Mid", "Senior", "Staff", "Principal"].map((v) => ({ value: v.toLowerCase(), label: v }))} />
       </Field>
       <Field label="Employment types">
-        <ChipInput value={p.employment_types} onChange={(v) => update("employment_types", v)} placeholder="Full-time, Contract…" />
+        <ChipInput value={p.employment_types} onChange={(v) => update("employment_types", v)} suggestions={EMPLOYMENT_TYPES} placeholder="Full-time, Contract…" />
       </Field>
       <Field label="Notice period">{text(p, update, "notice_period", { placeholder: "e.g. 1 month" })}</Field>
     </Section>
@@ -123,10 +126,10 @@ export function EligibilitySection({ p, update }: Props) {
         <Switch checked={p.needs_sponsorship} onCheckedChange={(v) => update("needs_sponsorship", v)} />
       </label>
       <Field label="Already authorised to work in" hint="Countries or regions, e.g. Nigeria, EU">
-        <ChipInput value={p.work_authorizations} onChange={(v) => update("work_authorizations", v)} />
+        <ChipInput value={p.work_authorizations} onChange={(v) => update("work_authorizations", v)} suggestions={WORK_AUTH} maxSuggestions={6} />
       </Field>
       <Field label="Acceptable regions for remote work" hint="e.g. EMEA, Worldwide, UTC±3">
-        <ChipInput value={p.acceptable_regions} onChange={(v) => update("acceptable_regions", v)} />
+        <ChipInput value={p.acceptable_regions} onChange={(v) => update("acceptable_regions", v)} suggestions={REGIONS} maxSuggestions={8} />
       </Field>
       <label className="flex items-center justify-between gap-3 rounded-lg border p-3">
         <span className="text-sm font-medium">Remote only</span>

@@ -82,7 +82,7 @@ export const useRun = (id: number | null) =>
              refetchInterval: (q) => (q.state.data && ["succeeded", "failed"].includes(q.state.data.status) ? false : 1500) });
 
 export const useCVs = () => useQuery({ queryKey: keys.cvs, queryFn: () => api.get<CVSummary[]>("/cvs") });
-export const useCV = (id: number) => useQuery({ queryKey: keys.cv(id), queryFn: () => api.get<CVDetail>(`/cvs/${id}`) });
+export const useCV = (id: number) => useQuery({ queryKey: keys.cv(id), queryFn: () => api.get<CVDetail>(`/cvs/${id}`), enabled: id > 0 });
 export const useSettings = () => useQuery({ queryKey: keys.settings, queryFn: () => api.get<Settings>("/settings") });
 export const useCompanies = () => useQuery({ queryKey: keys.companies, queryFn: () => api.get<Company[]>("/companies") });
 export const useNotifications = () =>

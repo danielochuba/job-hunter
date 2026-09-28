@@ -30,17 +30,40 @@ export function useRunWatcher(runId: number | null, { onDone, onFail, invalidate
   return run;
 }
 
-export function RunProgress({ run }: { run?: Run }) {
+function useElapsed(since: string | undefined, active: boolean) {
+  const [now, setNow] = React.useState(() => Date.now());
+  React.useEffect(() => {
+    if (!active) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [active]);
+  return since ? Math.max(0, Math.round((now - new Date(since).getTime()) / 1000)) : 0;
+}
+
+export function RunProgress({ run, slowHint = "LLM calls can take a minute or two." }: { run?: Run; slowHint?: string }) {
+  const active = !!run && ["queued", "running"].includes(run.status);
+  const elapsed = useElapsed(run?.started_at, active);
   if (!run) return null;
   const { done, total, label } = run.progress || { done: 0, total: 0 };
-  const pct = total ? (100 * done) / total : run.status === "succeeded" ? 100 : 8;
+  // Single-step runs (e.g. one LLM call) have no meaningful fraction: show an indeterminate bar.
+  const indeterminate = active && total <= 1;
+  const pct = total ? (100 * done) / total : run.status === "succeeded" ? 100 : 0;
+  const time = elapsed >= 60 ? `${Math.floor(elapsed / 60)}m ${elapsed % 60}s` : `${elapsed}s`;
   return (
     <div className="flex flex-col gap-1.5">
-      <Progress value={pct} indicatorClassName={run.status === "failed" ? "bg-destructive" : undefined} />
+      {indeterminate ? (
+        <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Working">
+          <div className="absolute inset-y-0 w-1/3 animate-[indeterminate_1.4s_ease-in-out_infinite] rounded-full bg-primary" />
+        </div>
+      ) : (
+        <Progress value={pct} indicatorClassName={run.status === "failed" ? "bg-destructive" : undefined} />
+      )}
       <p className="truncate text-xs text-muted-foreground">
         {run.status === "failed" ? run.error : label || (run.status === "succeeded" ? "Done" : "Working…")}
-        {total ? ` · ${done}/${total}` : ""}
+        {total > 1 ? ` · ${done}/${total}` : ""}
+        {active && ` · ${time}`}
       </p>
+      {active && elapsed > 20 && <p className="text-[11px] text-muted-foreground/80">Still working. {slowHint}</p>}
     </div>
   );
 }

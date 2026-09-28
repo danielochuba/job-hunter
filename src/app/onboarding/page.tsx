@@ -16,6 +16,7 @@ import { useAutosave } from "@/features/profile/use-autosave";
 import { api } from "@/lib/api/client";
 import { keys, useCVs, useGmail, useMe } from "@/lib/api/hooks";
 import type { ParsedCV, UserProfile } from "@/lib/api/types";
+import { REGIONS, useRoleSuggestions } from "@/lib/suggestions";
 import { cn } from "@/lib/utils";
 
 const STEPS = ["You", "Your CV", "What you want", "Where to look", "Email", "Go"];
@@ -32,6 +33,7 @@ export default function OnboardingPage() {
   const [queries, setQueries] = React.useState<string[]>([]);
   const [companyUrl, setCompanyUrl] = React.useState("");
   const [finishing, setFinishing] = React.useState(false);
+  const roleSuggestions = useRoleSuggestions();
 
   const next = async () => { await flush(); setStep((s) => Math.min(STEPS.length - 1, s + 1)); };
   const finish = async (collect: boolean) => {
@@ -107,13 +109,16 @@ export default function OnboardingPage() {
               <Card className="flex flex-col gap-5 p-6">
                 <div><h1 className="text-xl font-semibold">What are you looking for?</h1>
                   <p className="text-sm text-muted-foreground">This decides what gets searched, and what gets filtered out before it wastes your time.</p></div>
-                <Field label="Target roles"><ChipInput value={p.target_roles} onChange={(v) => update("target_roles", v)} placeholder="Backend Engineer, Python Developer…" /></Field>
+                <Field label="Target roles" hint="Pick as many as you like">
+                  <ChipInput value={p.target_roles} onChange={(v) => update("target_roles", v)} suggestions={roleSuggestions}
+                    placeholder="Type a role and press Enter, or pick below" />
+                </Field>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Seniority">
                     <Select value={p.seniority ?? undefined} placeholder="Any" onValueChange={(v) => update("seniority", v)}
                       options={["junior", "mid", "senior", "staff"].map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) }))} />
                   </Field>
-                  <Field label="Acceptable regions for remote"><ChipInput value={p.acceptable_regions} onChange={(v) => update("acceptable_regions", v)} placeholder="EMEA, Worldwide…" /></Field>
+                  <Field label="Acceptable regions for remote"><ChipInput value={p.acceptable_regions} onChange={(v) => update("acceptable_regions", v)} suggestions={REGIONS} maxSuggestions={6} placeholder="EMEA, Worldwide…" /></Field>
                 </div>
                 <label className="flex items-center justify-between rounded-lg border p-3 text-sm"><span>I need visa sponsorship</span><Switch checked={p.needs_sponsorship} onCheckedChange={(v) => update("needs_sponsorship", v)} /></label>
                 <label className="flex items-center justify-between rounded-lg border p-3 text-sm"><span>Remote only</span><Switch checked={p.remote_only} onCheckedChange={(v) => update("remote_only", v)} /></label>
