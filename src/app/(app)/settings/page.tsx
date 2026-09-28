@@ -17,11 +17,6 @@ import { keys, useCompanies, useGmail, useSettings } from "@/lib/api/hooks";
 import type { Settings } from "@/lib/api/types";
 import { formatDate, titleCase } from "@/lib/utils";
 
-const AGGREGATOR_INFO: Record<string, string> = {
-  remotive: "Remote jobs, searchable", remoteok: "Remote tech jobs", arbeitnow: "Europe-focused, many visa-friendly",
-  himalayas: "Remote jobs with region info", jobicy: "Remote jobs by tag", weworkremotely: "Remote dev & ops feeds",
-  hn_whoishiring: "Monthly Hacker News thread",
-};
 const INVALIDATE = [keys.settings];
 
 function Section({ icon: Icon, title, description, children, id }: { icon: typeof Globe; title: string; description?: string; children: React.ReactNode; id?: string }) {
@@ -134,16 +129,28 @@ function SettingsForm({ initial }: { initial: Settings }) {
   return (
     <>
       <div className="flex justify-end"><SaveIndicator state={state} /></div>
-      <Section icon={Radar} title="Job boards & search" description="Aggregators are searched with these queries (or your target roles if empty).">
+      <Section icon={Radar} title="Job sources" description="Searched with these queries, or your target roles if empty. Sources marked 'needs key' switch on once you add their free API key to the API's .env.">
         <Field label="Search queries"><ChipInput value={s.search_queries} onChange={(v) => update("search_queries", v)} placeholder="python, django, backend engineer…" /></Field>
         <div className="grid gap-2 sm:grid-cols-2">
-          {s.available_aggregators.map((a) => (
-            <label key={a} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3 hover:bg-muted/50">
-              <span><span className="block text-sm font-medium">{titleCase(a)}</span><span className="text-xs text-muted-foreground">{AGGREGATOR_INFO[a]}</span></span>
-              <Switch checked={s.aggregators.includes(a)}
-                onCheckedChange={(on) => update("aggregators", on ? [...s.aggregators, a] : s.aggregators.filter((x) => x !== a))} />
-            </label>
-          ))}
+          {s.available_aggregators.map((a) => {
+            const st = s.source_status?.[a];
+            const missing = st && !st.configured;
+            return (
+              <label key={a} className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3 hover:bg-muted/50 ${missing ? "border-dashed" : ""}`}>
+                <span className="min-w-0">
+                  <span className="flex items-center gap-2 text-sm font-medium">
+                    {titleCase(a)}
+                    {missing && <Badge variant="warning">needs key</Badge>}
+                    {st?.keyed && !missing && <Badge variant="success">key set</Badge>}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">{st?.info}</span>
+                  {missing && <span className="block font-mono text-[10px] text-muted-foreground">{st.needs}</span>}
+                </span>
+                <Switch checked={s.aggregators.includes(a)}
+                  onCheckedChange={(on) => update("aggregators", on ? [...s.aggregators, a] : s.aggregators.filter((x) => x !== a))} />
+              </label>
+            );
+          })}
         </div>
       </Section>
 

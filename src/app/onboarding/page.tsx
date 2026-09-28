@@ -127,7 +127,7 @@ export default function OnboardingPage() {
             {step === 3 && (
               <Card className="flex flex-col gap-5 p-6">
                 <div><h1 className="text-xl font-semibold">Where should we look?</h1>
-                  <p className="text-sm text-muted-foreground">Seven public job boards are on by default. Add keywords, and any companies you&apos;d love to work for.</p></div>
+                  <p className="text-sm text-muted-foreground">Nine free job sources are on by default, plus Google Jobs, Reddit and web search once you add their keys. Add keywords, and any companies you&apos;d love to work for.</p></div>
                 <Field label="Search keywords" hint="Leave empty to use your target roles"><ChipInput value={queries} onChange={setQueries} placeholder="python, django, fastapi…" /></Field>
                 <Field label="Companies you're watching (careers page URL)">
                   <div className="flex gap-2">

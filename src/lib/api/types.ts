@@ -276,6 +276,7 @@ export interface Settings {
   followup_days: number;
   monthly_budget_usd: number;
   available_aggregators: string[];
+  source_status: Record<string, { configured: boolean; needs: string; info: string; keyed: boolean }>;
   available_sources: string[];
   next_daily_run: string | null;
 }
