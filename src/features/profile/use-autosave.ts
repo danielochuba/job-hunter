@@ -14,13 +14,12 @@ const DEFAULT_INVALIDATE: QueryKey[] = [keys.me];
 /** Local draft that PUTs changed fields to `path` after a pause in typing (and on unmount). */
 export function useAutosave<T extends object>(initial: T | undefined, path: string, invalidate: QueryKey[] = DEFAULT_INVALIDATE) {
   const qc = useQueryClient();
-  const [draft, setDraft] = React.useState<T | undefined>(initial);
+  const [edits, setEdits] = React.useState<Partial<T>>({});
+  const draft = initial ? ({ ...initial, ...edits } as T) : undefined;
   const [state, setState] = React.useState<SaveState>("idle");
   const pending = React.useRef<Partial<T>>({});
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const flushRef = React.useRef<() => Promise<void>>(async () => {});
-
-  React.useEffect(() => { if (initial && !draft) setDraft(initial); }, [initial, draft]);
 
   React.useEffect(() => {
     flushRef.current = async () => {
@@ -40,7 +39,7 @@ export function useAutosave<T extends object>(initial: T | undefined, path: stri
   });
 
   const update = React.useCallback(<K extends keyof T>(key: K, value: T[K]) => {
-    setDraft((d) => (d ? { ...d, [key]: value } : d));
+    setEdits((e) => ({ ...e, [key]: value }));
     pending.current = { ...pending.current, [key]: value };
     setState("saving");
     if (timer.current) clearTimeout(timer.current);

@@ -253,15 +253,24 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+const sidebarListeners = new Set<() => void>();
+
+/** Sidebar collapsed state persisted in localStorage (a per-browser convenience). */
+function useSidebarCollapsed() {
+  const collapsed = React.useSyncExternalStore(
+    (cb) => { sidebarListeners.add(cb); return () => { sidebarListeners.delete(cb); }; },
+    () => { try { return localStorage.getItem("jh:sidebar") === "collapsed"; } catch { return false; } },
+    () => false,
+  );
+  const toggle = () => {
+    try { localStorage.setItem("jh:sidebar", collapsed ? "open" : "collapsed"); } catch {}
+    sidebarListeners.forEach((l) => l());
+  };
+  return [collapsed, toggle] as const;
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = React.useState(false);
-  React.useEffect(() => {
-    try { setCollapsed(localStorage.getItem("jh:sidebar") === "collapsed"); } catch {}
-  }, []);
-  const toggle = () => setCollapsed((c) => {
-    try { localStorage.setItem("jh:sidebar", c ? "open" : "collapsed"); } catch {}
-    return !c;
-  });
+  const [collapsed, toggle] = useSidebarCollapsed();
   return (
     <ImportJobProvider>
       <CommandPaletteProvider>

@@ -28,7 +28,7 @@ async function request<T>(method: string, path: string, body?: unknown, query?: 
     body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
   });
   if (res.status === 401 && typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-    window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+    window.location.replace(`/login?next=${encodeURIComponent(window.location.pathname)}`);
   }
   if (!res.ok) {
     let detail = res.statusText;
