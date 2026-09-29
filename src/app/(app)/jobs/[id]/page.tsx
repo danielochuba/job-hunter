@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  BellRing, Check, ChevronLeft, ExternalLink, FileText, GraduationCap, History, LayoutList, Mail, MapPin, RefreshCw, Search, Send, Users, Wand2, X,
+  BellRing, Check, ChevronLeft, ExternalLink, FileText, GraduationCap, History, LayoutList, Mail, MapPin, PenLine, RefreshCw, Search, Send, Users, Wand2, X,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -18,6 +18,7 @@ import { ContactsTab, OutreachTab } from "@/features/job/contacts";
 import { Overview } from "@/features/job/overview";
 import { PrepTab } from "@/features/job/prep";
 import { TimelineTab } from "@/features/job/timeline";
+import { WriteTab } from "@/features/job/write";
 import { api } from "@/lib/api/client";
 import { keys, useCVs, useJob, usePatchJob } from "@/lib/api/hooks";
 import type { Job, Stage } from "@/lib/api/types";
@@ -139,6 +140,7 @@ export default function JobPage() {
             <TabsTrigger value="overview"><LayoutList /> Overview</TabsTrigger>
             <TabsTrigger value="cv"><FileText /> CV{c.applications ? ` · v${c.applications}` : ""}</TabsTrigger>
             <TabsTrigger value="letter"><Mail /> Cover letter</TabsTrigger>
+            <TabsTrigger value="write"><PenLine /> Write</TabsTrigger>
             <TabsTrigger value="contacts"><Users /> Contacts{c.contacts ? ` · ${c.contacts}` : ""}</TabsTrigger>
             <TabsTrigger value="outreach"><Send /> Outreach{c.outreach ? ` · ${c.outreach}` : ""}</TabsTrigger>
             <TabsTrigger value="prep"><GraduationCap /> Prep</TabsTrigger>
@@ -147,6 +149,7 @@ export default function JobPage() {
           <TabsContent value="overview"><Overview job={job} /></TabsContent>
           <TabsContent value="cv"><CvTab job={job} /></TabsContent>
           <TabsContent value="letter"><CoverLetterTab job={job} /></TabsContent>
+          <TabsContent value="write"><WriteTab job={job} /></TabsContent>
           <TabsContent value="contacts"><ContactsTab job={job} onDrafted={() => setTab("outreach")} /></TabsContent>
           <TabsContent value="outreach"><OutreachTab job={job} /></TabsContent>
           <TabsContent value="prep"><PrepTab job={job} /></TabsContent>

@@ -262,6 +262,7 @@ export interface UserProfile {
   notice_period: string | null;
   email_signature: string | null;
   onboarded: boolean;
+  cv_location: "full" | "country" | "remote" | "hidden";
   completeness: number;
   missing: string[];
   missing_required: string[];
@@ -352,4 +353,18 @@ export interface GmailStatus {
   configured: boolean;
   connected: boolean;
   email: string | null;
+}
+
+export interface FormAnswer {
+  id: number;
+  job_id: number;
+  question: string;
+  max_words: number;
+  tone: "direct" | "warm" | "formal" | "enthusiastic";
+  emphasis: string | null;
+  answer: string;
+  evidence: string[];
+  evidence_text?: { id: string; text: string }[];
+  created_at: string;
+  updated_at: string;
 }

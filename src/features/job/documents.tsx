@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { diffWords } from "diff";
-import { Download, FileText, GitCompare, Plus, Save, ShieldCheck, TriangleAlert, Wand2, X } from "lucide-react";
+import { Download, FileText, GitCompare, Plus, Printer, Save, ShieldCheck, TriangleAlert, Wand2, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -19,7 +19,7 @@ async function openFile(appId: number, kind: "cv_pdf" | "cv_html" | "cover_lette
   try {
     const files = await api.get<Record<string, string | null>>(`/applications/${appId}/files`);
     const url = files[kind];
-    if (!url) return toast.error(kind === "cv_pdf" ? "No PDF for this version (WeasyPrint isn't installed). Use Print → Save as PDF in the preview." : "File not found");
+    if (!url) return toast.error(kind === "cv_pdf" ? "Couldn't create a PDF on the server. Use “Print / Save as PDF” on the preview instead." : "File not found");
     window.open(url, "_blank", "noopener");
   } catch (e) {
     toast.error((e as Error).message);
@@ -81,6 +81,7 @@ function CvEditor({ job, app, apps, onVersion }: { job: Job; app: Application; a
   const [html, setHtml] = React.useState<string>("");
   const [previewWarnings, setPreviewWarnings] = React.useState<string[]>(app.warnings);
   const [saving, setSaving] = React.useState(false);
+  const frame = React.useRef<HTMLIFrameElement>(null);
   const dirty = JSON.stringify(draft) !== JSON.stringify(app.result);
 
   // Live preview (validated server-side, not stored), debounced.
@@ -142,8 +143,8 @@ function CvEditor({ job, app, apps, onVersion }: { job: Job; app: Application; a
         </div>
       </div>
       <Warnings warnings={previewWarnings} />
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="flex flex-col gap-4">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-4">
           <Card>
             <CardHeader><CardTitle>Summary</CardTitle></CardHeader>
             <CardContent>
@@ -159,7 +160,7 @@ function CvEditor({ job, app, apps, onVersion }: { job: Job; app: Application; a
           {(["experience", "projects"] as const).map((section) => draft[section].map((item) => (
             <Card key={`${section}-${item.id}`}>
               <CardHeader className="flex-row items-center justify-between">
-                <CardTitle>{roleName(section, item.id)}</CardTitle>
+                <CardTitle className="min-w-0 truncate" title={roleName(section, item.id)}>{roleName(section, item.id)}</CardTitle>
                 <Button variant="ghost" size="icon-sm" aria-label="Remove section"
                   onClick={() => setDraft((d) => ({ ...d, [section]: d[section].filter((x) => x.id !== item.id) }))}><X /></Button>
               </CardHeader>
@@ -191,8 +192,12 @@ function CvEditor({ job, app, apps, onVersion }: { job: Job; app: Application; a
             <div className="flex items-center gap-2 border-b bg-muted px-3 py-2 text-xs text-muted-foreground">
               <span className="size-2.5 rounded-full bg-destructive/60" /><span className="size-2.5 rounded-full bg-warning/60" /><span className="size-2.5 rounded-full bg-success/60" />
               <span className="ml-2">Live preview{dirty ? " (unsaved)" : ""}</span>
+              <button type="button" disabled={!html} onClick={() => frame.current?.contentWindow?.print()}
+                className="ml-auto inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium text-foreground hover:bg-card disabled:opacity-40">
+                <Printer className="size-3.5" /> Print / Save as PDF
+              </button>
             </div>
-            {html ? <iframe title="CV preview" srcDoc={html} sandbox="allow-same-origin allow-modals" className="h-[72vh] w-full" />
+            {html ? <iframe ref={frame} title="CV preview" srcDoc={html} sandbox="allow-same-origin allow-modals" className="h-[72vh] w-full" />
               : <Skeleton className="m-4 h-[60vh]" />}
           </div>
         </div>

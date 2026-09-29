@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { api } from "./client";
 import type {
-  Application, Company, Contact, CVDetail, CVSummary, GmailStatus, Job, JobListItem, Notification, Outreach, Page,
+  Application, Company, FormAnswer, Contact, CVDetail, CVSummary, GmailStatus, Job, JobListItem, Notification, Outreach, Page,
   PrepPack, Reminder, Run, Settings, SkillGaps, Stats, TimelineEvent, TrackerCard, UsageReport, UserProfile,
 } from "./types";
 
@@ -70,6 +70,8 @@ export const useOutreach = (id: number) =>
   useQuery({ queryKey: keys.jobPart(id, "outreach"), queryFn: () => api.get<Outreach[]>(`/jobs/${id}/outreach`) });
 export const useEvents = (id: number) =>
   useQuery({ queryKey: keys.jobPart(id, "events"), queryFn: () => api.get<TimelineEvent[]>(`/jobs/${id}/events`) });
+export const useAnswers = (id: number) =>
+  useQuery({ queryKey: keys.jobPart(id, "answers"), queryFn: () => api.get<FormAnswer[]>(`/jobs/${id}/answers`) });
 export const usePrep = (id: number) =>
   useQuery({ queryKey: keys.jobPart(id, "prep"), queryFn: () => api.get<PrepPack | null>(`/jobs/${id}/prep`) });
 

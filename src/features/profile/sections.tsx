@@ -54,7 +54,18 @@ export function ContactSection({ p, update }: Props) {
       <Field label="City *">{text(p, update, "city", { autoComplete: "address-level2" })}</Field>
       <Field label="State / region">{text(p, update, "state_region")}</Field>
       <Field label="Country *">{text(p, update, "country", { autoComplete: "country-name" })}</Field>
-      <Field label="Timezone">{text(p, update, "timezone", { placeholder: Intl.DateTimeFormat().resolvedOptions().timeZone })}</Field>
+      <Field label="Timezone" hint="e.g. Africa/Lagos. Used for “Remote + timezone” on CVs">
+        {text(p, update, "timezone", { placeholder: Intl.DateTimeFormat().resolvedOptions().timeZone })}
+      </Field>
+      <Field label="Location on generated CVs" hint="Many remote applicants show only their timezone">
+        <Select value={p.cv_location ?? "full"} onValueChange={(v) => update("cv_location", v as UserProfile["cv_location"])}
+          options={[
+            { value: "full", label: `City & country${p.city || p.country ? ` (${[p.city, p.country].filter(Boolean).join(", ")})` : ""}` },
+            { value: "country", label: `Country only${p.country ? ` (${p.country})` : ""}` },
+            { value: "remote", label: "Remote + timezone" },
+            { value: "hidden", label: "Don't show a location" },
+          ]} />
+      </Field>
     </Section>
   );
 }
