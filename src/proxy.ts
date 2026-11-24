@@ -4,6 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 /** Refreshes the Supabase session cookie and sends signed-out visitors to /login.
  *  (An optimistic check only: the FastAPI backend verifies the JWT on every request.) */
 export async function proxy(request: NextRequest) {
+  if (process.env.NEXT_PUBLIC_AUTH_DISABLED === "true") {
+    // Local mode: no sign-in at all.
+    return request.nextUrl.pathname.startsWith("/login")
+      ? NextResponse.redirect(new URL("/", request.url))
+      : NextResponse.next({ request });
+  }
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

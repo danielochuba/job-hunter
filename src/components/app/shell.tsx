@@ -18,7 +18,7 @@ import {
 import { Kbd } from "@/components/ui/primitives";
 import { api } from "@/lib/api/client";
 import { keys, useActiveRuns, useMe, useNotifications, useStats } from "@/lib/api/hooks";
-import { supabase } from "@/lib/supabase/client";
+import { AUTH_DISABLED, supabase } from "@/lib/supabase/client";
 import { cn, initials, timeAgo, titleCase } from "@/lib/utils";
 
 import { CommandPaletteProvider, useCommandPalette } from "./command-palette";
@@ -199,8 +199,12 @@ function UserMenu() {
             <Icon /> {titleCase(t)}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={signOut}><LogOut /> Sign out</DropdownMenuItem>
+        {!AUTH_DISABLED && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={signOut}><LogOut /> Sign out</DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
